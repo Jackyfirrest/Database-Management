@@ -1,0 +1,342 @@
+{% load static %}
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="utf-8">
+        <title>NTU Basketball Court Reservation</title>
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.theme.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.structure.min.css">
+
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+
+        <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+    </head>
+    
+    <body>
+        <div id="app">
+
+            <nav id="navbar" class="navbar" style="border-bottom: 2px solid black;">
+                <img src="{% static 'img/logo.png' %}" height="50" alt="" loading="lazy">
+                
+                <div class="right-things me-auto">
+                    <div class="row">
+                    
+                    <div v-if="now_user_is_admin" class="nav-item">
+                        <!--<img src="{% static 'img/ALG.png' %}" class="me-auto" height="50" alt="" loading="lazy" style="margin: 0 15px; margin-left: 40px;">-->
+                        <button class="btn btn btn-success" style="margin-right: 4rem;" type="button" id="dropdownMenu2" aria-haspopup="true" aria-expanded="false">
+                            ADMIN
+                        </button>
+                    </div>
+
+                    <div v-if="now_user!=''" class="nav-item">
+                        <!--<img src="{% static 'img/ALG.png' %}" class="me-auto" height="50" alt="" loading="lazy" style="margin: 0 15px; margin-left: 40px;">-->
+                        <button class="btn" style="margin-right: 4rem;" type="button" id="dropdownMenu2" aria-haspopup="true" aria-expanded="false">
+                        [[now_user_name]] ([[now_user]])
+                        </button>
+                    </div>
+                    
+                    <div class="nav-item">
+                        <!--<img src="{% static 'img/PERSON.png' %}" class="me-auto" height="50" alt="" loading="lazy" style="margin: 0 15px; margin-left: 40px;">-->
+                        <button v-if="now_user==''" class="btn" style="margin-right: 1rem;" type="button" data-toggle="modal" data-target="#login-modal">
+                            Login
+                        </button>
+                        <button v-if="now_user!=''" class="btn" style="margin-right: 1rem;" type="button" @click="logout()">
+                            Logout
+                        </button>
+                    </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Login Modal -->
+            <div class="modal fade" id="login-modal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="login-modal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="staticBackdropLabel">Login</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                        <form class="container">
+                            <div class="form-group row">
+                              <label for="staticEmail" class="col-sm-2 col-form-label">Account</label>
+                              <div class="offset-sm-1 col-sm-9">
+                                <input v-model="tmp_acc" type="text" class="form-control" id="inputAccount">
+                              </div>
+                            </div>
+                            <div class="form-group row">
+                              <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
+                              <div class="offset-sm-1 col-sm-9">
+                                <input v-model="tmp_passwd" type="password" class="form-control" id="inputPassword">
+                              </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                      <button type="button" class="btn btn-primary" data-dismiss="modal" @click="login()">Login</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            <div id="result-frame" class="container" style="margin-bottom: 30px;">
+
+                <div class="row imgs">
+                    <div v-for="venue in venues" class="col-6 single-img">
+                        <button class="btn" data-toggle="modal" :data-target="'#'+venue.venueid+'-modal'" @click="chooseVenue(venue.venueid)">
+                            <img :src="venue.imgurl" height="200px" alt="" loading="lazy">
+                        </button>
+                        <h5>[[venue.location]]</h5>
+                    </div>
+                </div>
+
+                <div class="row" id="my-records-title" style="margin-top: 3rem; margin-left: 1rem;">
+                    <h3>My Records</h3>
+                </div>
+
+                <ul class="list-group list-group-horizontal row col-name" style="margin-top: 1rem;">
+                    <li class="list-group-item col-2">Record ID</li>
+                    <li class="list-group-item col-2">Court Name</li>
+                    <li class="list-group-item col-2">Date</li>
+                    <li class="list-group-item col-2">From</li>
+                    <li class="list-group-item col-1">To</li>
+                    <li class="list-group-item col-2">Coordinatable</li>
+                    <li class="list-group-item col-1">
+                      <div class="row justify-content-center">
+                        <button class="btn refresh" @click="findMyRecords();">
+                          <i class="row fa fa-sync-alt"></i>
+                        </button>
+                      </div>
+                    </li>
+                </ul>
+                <ul v-for="record in now_my_records" class="list-group list-group-horizontal row" style="font-size: x-small;">
+                    <li class="list-group-item col-2">[[record.recordid]]</li>
+                    <li class="list-group-item col-2">[[record.courtname]]</li>
+                    <li class="list-group-item col-2">[[record.rdate]]</li>
+                    <li class="list-group-item col-2">[[record.starttime]]</li>
+                    <li class="list-group-item col-1">[[record.endtime]]</li>
+                    <li v-if="record.coordinateornot" class="list-group-item col-2">Yes</li>
+                    <li v-else class="list-group-item col-2">No</li>
+                    <li class="list-group-item col-1">
+                      <div class="row justify-content-center">
+                        <button class="btn delete" @click="lazyDelete(record.recordid);">
+                          <i class="row fa fa-trash-alt"></i>
+                        </button>
+                      </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div v-for="venue in venues" class="modal fade back-modal" :id="venue.venueid+'-modal'" data-keyboard="false" tabindex="-1" :aria-labelledby="venue.venueid+'-modal'" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="staticBackdropLabel">[[venue.location]] 場地登記</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body container">
+                        <div class="basic-data row">
+                            <div class="col-8">
+                                <div class="card bg-dark text-white">
+                                    <img :src="venue.imgurl" class="card-img" alt="">
+                                    <div class="card-img-overlay">
+                                      <h5 class="card-title">[[venue.location]]</h5>
+                                      <p class="card-text">場地ID： [[venue.venueid]]</p>
+                                      <p v-if="venue.shadeornot=='0'" class="card-text">有無遮陽： 無</p>
+                                      <p v-else class="card-text">有無遮陽： 有</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <input v-show="now_user_is_admin" class="admin-datepicker" :id="venue.venueid+'_admin'">
+                                <input v-show="!now_user_is_admin" class="datepicker" :id="venue.venueid">                              
+                            </div>
+                        </div>
+
+                        <div v-if="now_date!=''" class="reservation-form" style="text-align:center;">
+                            <ul class="list-group list-group-horizontal row col-name" style="margin-top: 3rem;">
+                                <li class="list-group-item col-1">Hour</li>
+                                <li class="list-group-item col-1">Record ID</li>
+                                <li class="list-group-item col-2">Account Name</li>
+                                <li class="list-group-item col-1">Date</li>
+                                <li class="list-group-item col-1">Scope</li>
+                                <li class="list-group-item col-1">Contact</li>
+                                <li class="list-group-item col-1">Phone</li>
+                                <li class="list-group-item col-1">Line</li>
+                                <li class="list-group-item col-2">Coordinatable</li>
+                                <li class="list-group-item col-1"></li>
+                            </ul>
+                            <ul v-for="(hour,index) in now_day" class="list-group list-group-horizontal row" style="font-size: x-small;">
+                                <li class="list-group-item col-1" style="font-weight: bold;">[[index]] - [[index+1]]</li>
+                                <li v-if="hour!=null" class="list-group-item col-1">[[hour.recordid]]</li>
+                                <li v-if="hour!=null" class="list-group-item col-2">[[hour.username]]</li>
+                                <li v-if="hour!=null" class="list-group-item col-1">[[hour.rdate]]</li>
+                                <li v-if="hour!=null" class="list-group-item col-1">[[hour.starttime]] - [[hour.endtime]]</li>
+                                <li v-if="hour!=null" class="list-group-item col-1">[[hour.contactperson]]</li>
+                                <li v-if="hour!=null" class="list-group-item col-1">[[hour.phone]]</li>
+                                <li v-if="hour!=null" class="list-group-item col-1">[[hour.line]]</li>
+                                <li v-if="hour!=null && hour.coordinateornot" class="list-group-item col-2">Yes</li>
+                                <li v-if="hour!=null && !hour.coordinateornot" class="list-group-item col-2">No</li>
+
+                                <li v-if="hour==null" class="list-group-item col-10" style="font-weight: bold;">Available</li>
+                                
+                                <li class="list-group-item col-1 do-things">
+                                  <div class="row justify-content-center">
+                                    <button v-if="now_user!='' && hour==null && !now_user_is_admin" class="btn" data-toggle="modal" data-target="#reg-modal" @click="chooseHour(index);">
+                                      <i class="row fa fa-pen"></i>
+                                    </button>
+                                    <button v-if="now_user!='' && hour!=null && (hour.acc==now_user || now_user_is_admin)" class="btn delete" @click="lazyDelete(hour.recordid);">
+                                      <i class="row fa fa-trash-alt"></i>
+                                    </button>
+                                    <button v-if="now_user_is_admin" class="btn admin" data-toggle="modal" data-target="#admin-mod-modal" @click="chooseHour(index);">
+                                      <i class="row fa fa-user-shield"></i>
+                                    </button>
+                                  </div>
+                                </li>
+                              
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal fade top-modal" id="reg-modal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="reg-modal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="staticBackdropLabel">Reserve</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                        <form class="container">
+                            <div class="form-group row">
+                              <label class="col-sm-2 col-form-label">Start Time</label>
+                              <div class="offset-sm-1 col-sm-9">
+                                <input v-model="now_reserve_settings['starttime']" type="text" class="form-control" id="inputStart_admin">
+                              </div>
+                            </div>
+                            <div class="form-group row">
+                              <label class="col-sm-2 col-form-label">End Time</label>
+                              <div class="offset-sm-1 col-sm-9">
+                                <input v-model="now_reserve_settings['endtime']" type="text" class="form-control" id="inputEnd_admin">
+                              </div>
+                            </div>
+                            <div class="form-group row">
+                              <label class="col-sm-2 col-form-label">Contact Person</label>
+                              <div class="offset-sm-1 col-sm-9">
+                                <input v-model="now_reserve_settings['contactperson']" type="text" class="form-control" id="inputContact_admin">
+                              </div>
+                            </div>
+                            <div class="form-group row">
+                              <label class="col-sm-2 col-form-label">Phone</label>
+                              <div class="offset-sm-1 col-sm-9">
+                                <input v-model="now_reserve_settings['phone']" type="text" class="form-control" id="inputPhone_admin">
+                              </div>
+                            </div>
+                            <div class="form-group row">
+                              <label class="col-sm-2 col-form-label">Line</label>
+                              <div class="offset-sm-1 col-sm-9">
+                                <input v-model="now_reserve_settings['line']" type="text" class="form-control" id="inputLine_admin">
+                              </div>
+                            </div>
+                            <div class="form-group row">
+                              <label class="col-sm-2 col-form-label">Coordinatable</label>
+                              <div class="offset-sm-3 col-sm-7">
+                                <input v-model="now_reserve_settings['coordinatable']" type="checkbox" class="form-check-input" id="inputCoo_admin">
+                              </div>
+                            </div>
+                            
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                      <button type="button" class="btn btn-primary" data-dismiss="modal" @click="insertRecord();">Submit</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal fade top-modal" id="admin-mod-modal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="admin-mod-modal" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="staticBackdropLabel">Modify</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                        <form class="container">
+                            <div class="form-group row">
+                              <label class="col-sm-3 col-form-label">Start Time</label>
+                              <div class="offset-sm-1 col-sm-8">
+                                <input v-model="now_reserve_settings['starttime']" type="text" class="form-control" id="inputStart">
+                              </div>
+                            </div>
+                            <div class="form-group row">
+                              <label class="col-sm-3 col-form-label">End Time</label>
+                              <div class="offset-sm-1 col-sm-8">
+                                <input v-model="now_reserve_settings['endtime']" type="text" class="form-control" id="inputEnd">
+                              </div>
+                            </div>
+                            <div class="form-group row">
+                              <label class="col-sm-3 col-form-label">Contact Person</label>
+                              <div class="offset-sm-1 col-sm-8">
+                                <input v-model="now_reserve_settings['contactperson']" type="text" class="form-control" id="inputContact">
+                              </div>
+                            </div>
+                            <div class="form-group row">
+                              <label class="col-sm-3 col-form-label">Phone</label>
+                              <div class="offset-sm-1 col-sm-8">
+                                <input v-model="now_reserve_settings['phone']" type="text" class="form-control" id="inputPhone">
+                              </div>
+                            </div>
+                            <div class="form-group row">
+                              <label class="col-sm-3 col-form-label">Line</label>
+                              <div class="offset-sm-1 col-sm-8">
+                                <input v-model="now_reserve_settings['line']" type="text" class="form-control" id="inputLine">
+                              </div>
+                            </div>
+                            <div class="form-group row">
+                              <label class="col-sm-3 col-form-label">Coordinatable</label>
+                              <div class="offset-sm-3 col-sm-6">
+                                <input v-model="now_reserve_settings['coordinatable']" type="checkbox" class="form-check-input" id="inputCoo">
+                              </div>
+                            </div>
+                            
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                      <button type="button" class="btn btn-primary" data-dismiss="modal" @click="insertRecord();">Submit</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+        </div>
+
+
+        <script type="text/javascript" src="{% static 'js/scripts.js' %}"></script>
+    </body>
+
+</html>
