@@ -1,0 +1,61 @@
+/*------------------------- CustomScrollBar.css ---------------------------*/
+::-webkit-scrollbar {
+    width: 5px;
+}
+::-webkit-scrollbar-track {
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    margin:5px 0px 5px 0px;
+}
+::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    background-color: rgb(255, 255, 255);
+}
+
+.navbar{
+    width: 100%;
+    padding: 25px 10rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    background-color: white;
+}
+
+.navbar button{
+    font-weight: 600;
+}
+
+.navbar button:hover{
+    background-color: rgba(0, 168, 224, 0.13);
+}
+
+#result-frame .imgs .single-img{
+    text-align: center;
+}
+
+#result-frame .imgs .single-img h5{
+    margin: 10 0;
+    font-weight: bold;
+}
+
+.modal .modal-title{
+    font-weight: bold;
+}
+
+.btn.refresh{
+    color: forestgreen;
+}
+
+.btn.delete{
+    color: red;
+}
+
+.modal .reservation-form .do-things .btn.admin{
+    color: lightgreen;
+}
+
+.modal .reservation-form .do-things .btn.delete{
+    color: red;
+}
